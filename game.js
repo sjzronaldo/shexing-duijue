@@ -30,6 +30,8 @@
   const ctx = canvas.getContext("2d", { alpha: false });
   const elements = {
     board: $("#boardFrame"),
+    countdown: $("#countdownOverlay"),
+    countdownNumber: $("#countdownNumber"),
     overlay: $("#gameOverlay"),
     overlayLabel: $("#overlayLabel"),
     overlayTitle: $("#overlayTitle"),
@@ -81,6 +83,8 @@
   const game = {
     mode: "ready",
     introPage: "rules",
+    countdownRemaining: 0,
+    countdownShown: 3,
     roundStarted: false,
     geometry: null,
     columns: 36,
@@ -236,10 +240,13 @@
     }));
     game.rivals.forEach(spawnRival);
     game.roundStarted = true;
-    game.mode = "playing";
+    game.mode = "countdown";
+    game.countdownRemaining = 3;
+    game.countdownShown = 3;
+    elements.countdownNumber.textContent = "3";
     showOverlay();
     updateUI();
-    elements.message.textContent = "抢果实，留意对手路线";
+    elements.message.textContent = "准备开始";
     elements.pause.textContent = "暂停";
   }
 
@@ -432,6 +439,21 @@
     }
   }
 
+  function updateCountdown(dt) {
+    game.countdownRemaining = Math.max(0, game.countdownRemaining - dt);
+    const seconds = Math.max(1, Math.ceil(game.countdownRemaining));
+    if (seconds !== game.countdownShown) {
+      game.countdownShown = seconds;
+      elements.countdownNumber.textContent = String(seconds);
+    }
+    if (game.countdownRemaining === 0) {
+      game.mode = "playing";
+      showOverlay();
+      updateUI();
+      elements.message.textContent = "抢果实，留意对手路线";
+    }
+  }
+
   function burstAt(position) {
     const amount = 9 + Math.floor(Math.random() * 4);
     for (let i = 0; i < amount; i += 1) {
@@ -585,11 +607,13 @@
         <span class="rank-score">${player.score}</span>
       </li>`).join("");
     elements.pause.textContent = game.mode === "paused" ? "继续" : "暂停";
-    elements.pause.disabled = game.mode === "ready" || game.mode === "over";
+    elements.pause.disabled = game.mode === "ready" || game.mode === "countdown" || game.mode === "over";
   }
 
   function showOverlay() {
-    const visible = game.mode !== "playing";
+    const isCountdown = game.mode === "countdown";
+    elements.countdown.hidden = !isCountdown;
+    const visible = game.mode !== "playing" && !isCountdown;
     elements.overlay.hidden = !visible;
     if (!visible) return;
     elements.overlayRules.hidden = game.mode !== "ready";
@@ -658,7 +682,8 @@
   function animationFrame(timestamp) {
     const dt = Math.min((timestamp - (game.lastFrame || timestamp)) / 1000, 0.05);
     game.lastFrame = timestamp;
-    if (game.mode === "playing") update(dt);
+    if (game.mode === "countdown") updateCountdown(dt);
+    else if (game.mode === "playing") update(dt);
     render(timestamp);
     if (timestamp - game.lastUiUpdate > 180) {
       updateUI();
@@ -701,7 +726,7 @@
           try {
             await screen.orientation.lock("landscape");
           } catch {
-            elements.message.textContent = "已进入全屏，请将手机旋转至横屏";
+            elements.message.textContent = "已进入全屏横屏模式";
           }
         }
       }

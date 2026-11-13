@@ -30,6 +30,9 @@
 
           <div class="board-frame" id="boardFrame">
             <canvas id="arena" aria-label="贪吃蛇竞技场"></canvas>
+            <div class="countdown-overlay" id="countdownOverlay" role="status" aria-live="assertive" hidden>
+              <span class="countdown-number" id="countdownNumber">3</span>
+            </div>
             <div class="game-overlay" id="gameOverlay">
               <div class="overlay-content">
                 <span class="overline" id="overlayLabel">READY / 01</span>
@@ -55,7 +58,7 @@
                   <section class="brief-page" id="notesPage" hidden>
                     <div class="brief-notes">
                       <p><strong>操作</strong> <b>方向键 / WASD</b> 移动，<b>空格</b> 暂停；<b>Enter</b> 开始。</p>
-                      <p><strong>全屏</strong> 手机建议<b>横屏</b>，点击右上角“<b>全屏</b>”；滑动棋盘转向。</p>
+                      <p><strong>全屏</strong> 手机点击右上角“<b>全屏</b>”后自动横屏；滑动棋盘转向。</p>
                       <p><strong>设置</strong> <b>速度上限</b>在侧栏滑杆调整，下一局生效；全屏时先退出再设置。</p>
                     </div>
                   </section>
