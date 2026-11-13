@@ -1,9 +1,11 @@
 (() => {
   "use strict";
 
-  const BASE_FPS = 10;
-  const FPS_PER_LEVEL = 1;
-  const MAX_FPS = 20;
+  const BASE_FPS = 6;
+  const MIN_SPEED_LIMIT = 10;
+  const MAX_SPEED_LIMIT = 25;
+  const DEFAULT_SPEED_LIMIT = 15;
+  const MAX_LEVEL = 10;
   const SCORE_PER_FRUIT = 10;
   const RIVAL_SPEED_RATIO = 0.65;
   const RIVAL_RESPAWN_SECONDS = 2.5;
@@ -33,6 +35,8 @@
     overlayTitle: $("#overlayTitle"),
     overlayCopy: $("#overlayCopy"),
     overlayRules: $("#briefRules"),
+    rulesPage: $("#rulesPage"),
+    notesPage: $("#notesPage"),
     overlayAction: $("#overlayAction"),
     overlayActionLabel: $("#overlayActionLabel"),
     overlayFoot: $("#overlayFoot"),
@@ -45,7 +49,8 @@
     pause: $("#pauseButton"),
     restart: $("#restartButton"),
     fullscreen: $("#fullscreenButton"),
-    difficulty: $("#difficultySelect"),
+    speedLimit: $("#speedLimitSlider"),
+    speedLimitValue: $("#speedLimitValue"),
     grid: $("#gridToggle"),
     sound: $("#soundToggle"),
   };
@@ -67,8 +72,15 @@
     }
   }
 
+  function normalizeSpeedLimit(value) {
+    const parsed = Number(value);
+    if (!Number.isFinite(parsed)) return DEFAULT_SPEED_LIMIT;
+    return Math.min(MAX_SPEED_LIMIT, Math.max(MIN_SPEED_LIMIT, Math.round(parsed)));
+  }
+
   const game = {
     mode: "ready",
+    introPage: "rules",
     roundStarted: false,
     geometry: null,
     columns: 36,
@@ -82,8 +94,8 @@
     best: Number(readStored("snake-duel-best", 0)) || 0,
     level: 1,
     eaten: 0,
-    baseFps: BASE_FPS,
-    selectedFps: Number(readStored("snake-duel-speed", BASE_FPS)) || BASE_FPS,
+    speedLimit: DEFAULT_SPEED_LIMIT,
+    selectedSpeedLimit: normalizeSpeedLimit(readStored("snake-duel-speed-limit", DEFAULT_SPEED_LIMIT)),
     gridOn: readStored("snake-duel-grid", "true") === "true",
     soundOn: readStored("snake-duel-sound", "true") === "true",
     playerAccumulator: 0,
@@ -91,7 +103,8 @@
     lastUiUpdate: 0,
   };
 
-  elements.difficulty.value = String(game.selectedFps);
+  elements.speedLimit.value = String(game.selectedSpeedLimit);
+  elements.speedLimitValue.textContent = `${game.selectedSpeedLimit} FPS`;
   setToggle(elements.grid, game.gridOn);
   setToggle(elements.sound, game.soundOn);
 
@@ -199,7 +212,7 @@
   }
 
   function startRound() {
-    game.baseFps = game.selectedFps;
+    game.speedLimit = game.selectedSpeedLimit;
     game.score = 0;
     game.level = 1;
     game.eaten = 0;
@@ -231,7 +244,8 @@
   }
 
   function currentFps() {
-    return Math.min(MAX_FPS, game.baseFps + game.level - 1);
+    const progress = (game.level - 1) / (MAX_LEVEL - 1);
+    return BASE_FPS + Math.round((game.speedLimit - BASE_FPS) * progress);
   }
 
   function opposite(a, b) {
@@ -296,7 +310,7 @@
       playTone(620 + Math.random() * 240, 0.08);
       if (spawnFruit(fruit)) game.fruits.push(fruit);
       if (game.eaten % 5 === 0) {
-        game.level = Math.min(10, game.level + 1);
+        game.level = Math.min(MAX_LEVEL, game.level + 1);
         elements.message.textContent = `阶段 ${String(game.level).padStart(2, "0")} · 节奏提升`;
         playTone(900, 0.14);
       }
@@ -580,11 +594,18 @@
     if (!visible) return;
     elements.overlayRules.hidden = game.mode !== "ready";
     if (game.mode === "ready") {
-      elements.overlayLabel.textContent = "LOCAL ARENA / READY";
-      elements.overlayTitle.textContent = "抢果实，躲开对手。";
-      elements.overlayCopy.textContent = "方向键或 WASD 移动。手机可滑动棋盘或点按方向键。";
-      elements.overlayActionLabel.textContent = "开始对局";
-      elements.overlayFoot.textContent = "Enter 开始 · Space 暂停";
+      const onRulesPage = game.introPage === "rules";
+      elements.rulesPage.hidden = !onRulesPage;
+      elements.notesPage.hidden = onRulesPage;
+      elements.overlayLabel.textContent = onRulesPage ? "LOCAL ARENA / RULES" : "LOCAL ARENA / NOTES";
+      elements.overlayTitle.textContent = onRulesPage ? "游戏规则" : "注意事项";
+      elements.overlayCopy.textContent = onRulesPage
+        ? "收集果实成长，留意对手路线。"
+        : "设置完成后，按 Enter 或空格开始。";
+      elements.overlayActionLabel.textContent = onRulesPage ? "下一页" : "开始对局";
+      elements.overlayFoot.textContent = onRulesPage
+        ? "按任意键或点击下一页"
+        : `6 FPS 起步 · 上限 ${game.selectedSpeedLimit} FPS · Esc 返回规则`;
     } else if (game.mode === "paused") {
       elements.overlayLabel.textContent = "MATCH PAUSED";
       elements.overlayTitle.textContent = "先缓一口气。";
@@ -648,13 +669,18 @@
 
   elements.overlayAction.addEventListener("click", () => {
     if (game.mode === "paused") togglePause();
+    else if (game.mode === "ready" && game.introPage === "rules") {
+      game.introPage = "notes";
+      showOverlay();
+    }
     else startRound();
   });
   elements.pause.addEventListener("click", togglePause);
   elements.restart.addEventListener("click", startRound);
-  elements.difficulty.addEventListener("change", () => {
-    game.selectedFps = Number(elements.difficulty.value) || BASE_FPS;
-    writeStored("snake-duel-speed", game.selectedFps);
+  elements.speedLimit.addEventListener("input", () => {
+    game.selectedSpeedLimit = normalizeSpeedLimit(elements.speedLimit.value);
+    elements.speedLimitValue.textContent = `${game.selectedSpeedLimit} FPS`;
+    writeStored("snake-duel-speed-limit", game.selectedSpeedLimit);
   });
   elements.grid.addEventListener("click", () => {
     game.gridOn = !game.gridOn;
@@ -669,14 +695,46 @@
   elements.fullscreen.addEventListener("click", async () => {
     try {
       if (document.fullscreenElement) await document.exitFullscreen();
-      else await elements.board.requestFullscreen();
+      else {
+        await document.querySelector(".app-shell").requestFullscreen();
+        if (window.matchMedia("(max-width: 720px)").matches && screen.orientation?.lock) {
+          try {
+            await screen.orientation.lock("landscape");
+          } catch {
+            elements.message.textContent = "已进入全屏，请将手机旋转至横屏";
+          }
+        }
+      }
     } catch {
       elements.message.textContent = "当前浏览器不支持全屏";
     }
   });
+  document.addEventListener("fullscreenchange", () => {
+    elements.fullscreen.textContent = document.fullscreenElement ? "退出全屏" : "全屏";
+    if (!document.fullscreenElement) screen.orientation?.unlock?.();
+  });
 
   document.addEventListener("keydown", (event) => {
     const key = event.key.toLowerCase();
+    if (game.mode === "ready" && game.introPage === "rules") {
+      if (event.target instanceof HTMLElement && event.target.closest("input, select, textarea")) return;
+      event.preventDefault();
+      game.introPage = "notes";
+      showOverlay();
+      return;
+    }
+    if (game.mode === "ready" && game.introPage === "notes") {
+      if (key === "escape") {
+        event.preventDefault();
+        game.introPage = "rules";
+        showOverlay();
+      } else if ((key === "enter" || key === " ")
+        && !(event.target instanceof HTMLElement && event.target.closest("input, button, select"))) {
+        event.preventDefault();
+        startRound();
+      }
+      return;
+    }
     const direction = ({
       arrowup: DIRECTIONS.up, w: DIRECTIONS.up,
       arrowdown: DIRECTIONS.down, s: DIRECTIONS.down,
@@ -707,18 +765,24 @@
 
   let swipeStart = null;
   canvas.addEventListener("pointerdown", (event) => {
-    swipeStart = { x: event.clientX, y: event.clientY };
+    swipeStart = { pointerId: event.pointerId, x: event.clientX, y: event.clientY };
     canvas.setPointerCapture(event.pointerId);
   });
-  canvas.addEventListener("pointerup", (event) => {
-    if (!swipeStart) return;
+  function handleSwipe(event) {
+    if (!swipeStart || event.pointerId !== swipeStart.pointerId) return;
     const dx = event.clientX - swipeStart.x;
     const dy = event.clientY - swipeStart.y;
-    swipeStart = null;
     if (Math.max(Math.abs(dx), Math.abs(dy)) < 18) return;
+    swipeStart = null;
     if (Math.abs(dx) > Math.abs(dy)) queueDirection(dx > 0 ? DIRECTIONS.right : DIRECTIONS.left);
     else queueDirection(dy > 0 ? DIRECTIONS.down : DIRECTIONS.up);
+  }
+  canvas.addEventListener("pointermove", handleSwipe);
+  canvas.addEventListener("pointerup", (event) => {
+    handleSwipe(event);
+    swipeStart = null;
   });
+  canvas.addEventListener("pointercancel", () => { swipeStart = null; });
   document.addEventListener("visibilitychange", () => {
     if (document.hidden && game.mode === "playing") togglePause();
   });

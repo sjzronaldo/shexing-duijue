@@ -111,18 +111,27 @@ button:focus-visible, select:focus-visible { outline: 2px solid var(--acid); out
 .game-overlay {
   position: absolute;
   inset: 0;
-  display: grid;
-  place-items: center;
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  touch-action: pan-y;
   padding: 20px;
   background: rgba(8, 15, 12, .72);
   backdrop-filter: blur(3px);
 }
-.overlay-content { width: min(540px, 100%); padding: clamp(18px, 3vw, 32px); border: 1px solid rgba(181, 213, 184, .24); border-radius: 8px; background: rgba(16, 25, 21, .94); box-shadow: 0 18px 60px rgba(0, 0, 0, .4); animation: rise-in .28s ease both; }
+.overlay-content { width: min(540px, 100%); margin: auto 0; padding: clamp(18px, 3vw, 32px); border: 1px solid rgba(181, 213, 184, .24); border-radius: 8px; background: rgba(16, 25, 21, .94); box-shadow: 0 18px 60px rgba(0, 0, 0, .4); animation: rise-in .28s ease both; }
 .overline { color: var(--acid); }
 .overlay-content h1 { margin: 9px 0 8px; font-family: Georgia, "Songti SC", serif; font-size: clamp(25px, 3vw, 38px); line-height: 1.15; font-weight: 500; }
 .overlay-copy { max-width: 52ch; margin: 0 0 15px; color: #aab8ae; font-size: 13px; line-height: 1.65; }
-.brief-rules { margin: 14px 0 18px; display: grid; gap: 7px; }
+.brief-guidance { margin: 14px 0 18px; display: grid; gap: 11px; }
+.brief-section h2 { margin: 0 0 6px; color: var(--acid); font-size: 11px; font-weight: 700; }
+.brief-rules { margin: 0; display: grid; gap: 7px; }
 .brief-rule { min-height: 27px; display: flex; align-items: center; gap: 10px; color: #ced8cf; font-size: 12px; }
+.brief-notes { display: grid; gap: 4px; }
+.brief-notes p { margin: 0; color: #aab8ae; font-size: 11px; line-height: 1.45; }
+.brief-notes strong, .brief-notes b { color: var(--acid); font-weight: 800; }
 .fruit-cluster { min-width: 36px; display: flex; gap: 4px; }
 .fruit-cluster i, .legend-fruit { display: inline-block; width: 9px; height: 9px; border-radius: 50%; }
 .fruit-cluster i:nth-child(1), .fruit-red { background: #fa665f; box-shadow: 0 0 8px rgba(250,102,95,.5); }
@@ -164,7 +173,10 @@ kbd { min-width: 18px; height: 18px; padding: 1px 4px; display: inline-grid; pla
 .setting-row > span { display: grid; gap: 3px; }
 .setting-row strong, .setting-toggle span { color: #cbd6cc; font-size: 12px; font-weight: 600; }
 .setting-row small { color: #75847b; font-size: 10px; }
-select { max-width: 122px; min-height: 32px; padding: 0 7px; border: 1px solid #405047; border-radius: 5px; background: #202b25; color: #e0e8df; font-size: 11px; }
+.speed-setting { min-height: 84px; padding: 9px 0; display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: center; gap: 0 12px; }
+.speed-setting output { color: var(--acid); font-size: 12px; font-weight: 700; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.speed-setting input { grid-column: 1 / -1; width: 100%; height: 22px; margin: 7px 0 0; accent-color: var(--acid); cursor: pointer; touch-action: pan-y; }
+.speed-setting > .speed-range { grid-column: 1 / -1; display: flex; justify-content: space-between; margin-top: -1px; color: #75847b; font-size: 9px; font-variant-numeric: tabular-nums; }
 .setting-toggle { width: 100%; min-height: 40px; padding: 0; display: flex; align-items: center; justify-content: space-between; border: 0; border-bottom: 1px solid rgba(57, 72, 62, .55); background: transparent; cursor: pointer; }
 .setting-toggle:last-child { border-bottom: 0; }
 .setting-toggle strong { color: var(--acid); font-size: 10px; font-weight: 700; }
@@ -201,12 +213,16 @@ select { max-width: 122px; min-height: 32px; padding: 0 7px; border: 1px solid #
   .metric span { font-size: 8px; letter-spacing: .2px; }
   .metric strong { font-size: 13px; }
   .metric-score strong { font-size: 18px; }
-  .board-frame { width: 100%; min-height: 0; height: min(46svh, calc(100vw - 24px)); max-height: none; aspect-ratio: 1 / 1; border-radius: 6px; }
+  .board-frame { width: 100%; min-height: 0; height: min(54svh, calc(100vw - 24px)); max-height: none; aspect-ratio: 1 / 1; border-radius: 6px; }
   .overlay-content { max-width: 430px; padding: 15px; }
   .overlay-content h1 { font-size: clamp(22px, 6vw, 30px); }
   .overlay-copy { margin-bottom: 8px; font-size: 11px; }
-  .brief-rules { margin: 8px 0 10px; gap: 4px; }
-  .brief-rule { min-height: 23px; font-size: 10px; }
+  .brief-guidance { margin: 8px 0 10px; gap: 8px; }
+  .brief-section h2 { margin-bottom: 4px; font-size: 10px; }
+  .brief-rules { gap: 3px; }
+  .brief-rule { min-height: 21px; font-size: 9px; }
+  .brief-notes { gap: 3px; }
+  .brief-notes p { font-size: 9px; line-height: 1.35; }
   .start-button { min-height: 40px; }
   .overlay-foot { margin-top: 7px; font-size: 9px; }
   .actionbar { min-height: 36px; gap: 7px; }
@@ -233,10 +249,31 @@ select { max-width: 122px; min-height: 32px; padding: 0 7px; border: 1px solid #
   .metric span { font-size: 7px; }
   .metric strong { font-size: 12px; }
   .metric-score strong { font-size: 16px; }
-  .board-frame { height: min(44svh, calc(100vw - 16px)); }
+  .board-frame { height: min(54svh, calc(100vw - 16px)); }
   .overlay-content { padding: 12px; }
   .brief-rule { font-size: 9px; }
   .side-rail { grid-template-columns: 1fr; }
   .ranking-section { grid-row: auto; border-right: 0; }
   .field-notes { border-bottom: 1px solid var(--line); }
 }
+
+.app-shell:fullscreen {
+  width: 100%;
+  height: 100vh;
+  height: 100dvh;
+  min-height: 0;
+  overflow: hidden;
+  padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
+  display: flex;
+  flex-direction: column;
+}
+
+.app-shell:fullscreen .topbar { flex: 0 0 46px; height: 46px; }
+.app-shell:fullscreen .game-layout { flex: 1; min-height: 0; width: 100%; display: block; padding: 6px 0 0; }
+.app-shell:fullscreen .play-column { height: 100%; display: grid; grid-template-rows: auto minmax(0, 1fr) auto; gap: 4px; }
+.app-shell:fullscreen .score-strip { margin-bottom: 0; }
+.app-shell:fullscreen .metric { min-height: 34px; padding-top: 3px; padding-bottom: 3px; }
+.app-shell:fullscreen .board-frame { width: 100%; height: 100%; min-height: 0; max-height: none; aspect-ratio: auto; }
+.app-shell:fullscreen .actionbar { min-height: 36px; }
+.app-shell:fullscreen .side-rail,
+.app-shell:fullscreen .touch-controls { display: none; }

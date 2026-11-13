@@ -33,26 +33,37 @@
             <div class="game-overlay" id="gameOverlay">
               <div class="overlay-content">
                 <span class="overline" id="overlayLabel">READY / 01</span>
-                <h1 id="overlayTitle">抢果实，躲开对手。</h1>
-                <p class="overlay-copy" id="overlayCopy">方向键或 WASD 移动。手机可滑动棋盘或使用方向键。</p>
-                <div class="brief-rules" id="briefRules">
-                  <div class="brief-rule">
-                    <span class="fruit-cluster" aria-hidden="true"><i></i><i></i><i></i></span>
-                    <span>三色果实，每颗 +10 分并增长</span>
-                  </div>
-                  <div class="brief-rule">
-                    <span class="rule-glyph rule-collision" aria-hidden="true">×</span>
-                    <span>撞墙、自己或对手身体会结束</span>
-                  </div>
-                  <div class="brief-rule">
-                    <span class="rule-glyph rule-ghost" aria-hidden="true">2s</span>
-                    <span>对手撞你会掉落身体果实</span>
-                  </div>
+                <h1 id="overlayTitle">游戏规则</h1>
+                <p class="overlay-copy" id="overlayCopy">收集果实成长，留意对手路线。</p>
+                <div class="brief-guidance" id="briefRules">
+                  <section class="brief-page" id="rulesPage">
+                    <div class="brief-rules">
+                      <div class="brief-rule">
+                        <span class="fruit-cluster" aria-hidden="true"><i></i><i></i><i></i></span>
+                        <span>果实 +10 并增长；每 5 颗升一级，第 10 级达到速度上限</span>
+                      </div>
+                      <div class="brief-rule">
+                        <span class="rule-glyph rule-collision" aria-hidden="true">×</span>
+                        <span>撞墙或撞上对手会结束；撞自己不会</span>
+                      </div>
+                      <div class="brief-rule">
+                        <span class="rule-glyph rule-ghost" aria-hidden="true">2s</span>
+                        <span>对手撞到你或死亡时出局并掉落果实</span>
+                      </div>
+                    </div>
+                  </section>
+                  <section class="brief-page" id="notesPage" hidden>
+                    <div class="brief-notes">
+                      <p><strong>操作</strong> <b>方向键 / WASD</b> 移动，<b>空格</b> 暂停；<b>Enter</b> 开始。</p>
+                      <p><strong>全屏</strong> 手机建议<b>横屏</b>，点击右上角“<b>全屏</b>”；滑动棋盘转向。</p>
+                      <p><strong>设置</strong> <b>速度上限</b>在侧栏滑杆调整，下一局生效；全屏时先退出再设置。</p>
+                    </div>
+                  </section>
                 </div>
                 <button class="start-button" id="overlayAction" type="button">
-                  <span id="overlayActionLabel">开始对局</span><span class="button-arrow" aria-hidden="true">↗</span>
+                  <span id="overlayActionLabel">下一页</span><span class="button-arrow" aria-hidden="true">↗</span>
                 </button>
-                <span class="overlay-foot" id="overlayFoot">Enter 开始 · 空格暂停</span>
+                <span class="overlay-foot" id="overlayFoot">按任意键或点击下一页</span>
               </div>
             </div>
           </div>
@@ -82,13 +93,11 @@
 
           <section class="rail-section settings-section">
             <div class="section-heading"><h2>赛场设置</h2><span class="section-index">02</span></div>
-            <label class="setting-row" for="difficultySelect">
-              <span><strong>起始节奏</strong><small>可在下一局生效</small></span>
-              <select id="difficultySelect" aria-label="起始难度">
-                <option value="8">简单 · 8</option>
-                <option value="10" selected>普通 · 10</option>
-                <option value="14">困难 · 14</option>
-              </select>
+            <label class="setting-row speed-setting" for="speedLimitSlider">
+              <span><strong>蛇速上限</strong><small>下一局生效 · 每局从 6 FPS 起步</small></span>
+              <output id="speedLimitValue" for="speedLimitSlider">15 FPS</output>
+              <input id="speedLimitSlider" type="range" min="10" max="25" step="1" value="15" aria-label="蛇速上限">
+              <span class="speed-range" aria-hidden="true"><span>10 FPS</span><span>25 FPS</span></span>
             </label>
             <button class="setting-toggle" id="gridToggle" type="button" aria-pressed="true">
               <span>网格线</span><strong>开启</strong>
@@ -106,7 +115,7 @@
               <span class="legend-fruit fruit-yellow"></span>
               <span>果实 +10</span>
             </div>
-            <p>每 5 颗果实升一级。蛇速逐级增加，最高 20 FPS。</p>
+            <p>每 5 颗果实升一级。固定 6 FPS 起步，第 10 级达到所选上限（10–25 FPS）。</p>
             <p>对手较慢，会追逐果实；重生时远离你并免碰撞 2 秒。</p>
           </section>
 
