@@ -1,0 +1,118 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+    <meta name="theme-color" content="#101715">
+    <title>蛇行对决</title>
+    <link rel="stylesheet" href="styles.css">
+    <script src="game.js" defer></script>
+  </head>
+  <body>
+    <div class="app-shell">
+      <header class="topbar">
+        <a class="brand" href="#" aria-label="蛇行对决首页">
+          <span class="brand-mark" aria-hidden="true"><i></i><i></i><i></i></span>
+          <span class="brand-copy"><small>LOCAL ARENA / 01</small><strong>蛇行对决</strong></span>
+        </a>
+        <div class="topbar-status"><span class="status-light"></span>浏览器竞技场</div>
+        <button class="quiet-button" id="fullscreenButton" type="button" title="切换全屏">全屏</button>
+      </header>
+
+      <main class="game-layout">
+        <section class="play-column" aria-label="游戏区域">
+          <div class="score-strip">
+            <div class="metric metric-score"><span>本局得分</span><strong id="scoreValue">0</strong></div>
+            <div class="metric"><span>最高纪录</span><strong id="bestValue">0</strong></div>
+            <div class="metric"><span>阶段</span><strong id="levelValue">01</strong></div>
+            <div class="metric metric-length"><span>蛇身</span><strong id="lengthValue">03</strong></div>
+          </div>
+
+          <div class="board-frame" id="boardFrame">
+            <canvas id="arena" aria-label="贪吃蛇竞技场"></canvas>
+            <div class="game-overlay" id="gameOverlay">
+              <div class="overlay-content">
+                <span class="overline" id="overlayLabel">READY / 01</span>
+                <h1 id="overlayTitle">抢果实，躲开对手。</h1>
+                <p class="overlay-copy" id="overlayCopy">方向键或 WASD 移动。手机可滑动棋盘或使用方向键。</p>
+                <div class="brief-rules" id="briefRules">
+                  <div class="brief-rule">
+                    <span class="fruit-cluster" aria-hidden="true"><i></i><i></i><i></i></span>
+                    <span>三色果实，每颗 +10 分并增长</span>
+                  </div>
+                  <div class="brief-rule">
+                    <span class="rule-glyph rule-collision" aria-hidden="true">×</span>
+                    <span>撞墙、自己或对手身体会结束</span>
+                  </div>
+                  <div class="brief-rule">
+                    <span class="rule-glyph rule-ghost" aria-hidden="true">2s</span>
+                    <span>对手撞你会掉落身体果实</span>
+                  </div>
+                </div>
+                <button class="start-button" id="overlayAction" type="button">
+                  <span id="overlayActionLabel">开始对局</span><span class="button-arrow" aria-hidden="true">↗</span>
+                </button>
+                <span class="overlay-foot" id="overlayFoot">Enter 开始 · 空格暂停</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="actionbar">
+            <span class="keyboard-hint"><kbd>←</kbd><kbd>↑</kbd><kbd>↓</kbd><kbd>→</kbd> 或 WASD 移动</span>
+            <span class="live-message" id="liveMessage" aria-live="polite">准备就绪</span>
+            <div class="action-buttons">
+              <button class="quiet-button" id="pauseButton" type="button">暂停</button>
+              <button class="quiet-button" id="restartButton" type="button">重开</button>
+            </div>
+          </div>
+
+          <div class="touch-controls" aria-label="触屏方向控制">
+            <button type="button" class="direction-button direction-up" data-direction="up" aria-label="向上">↑</button>
+            <button type="button" class="direction-button direction-left" data-direction="left" aria-label="向左">←</button>
+            <button type="button" class="direction-button direction-down" data-direction="down" aria-label="向下">↓</button>
+            <button type="button" class="direction-button direction-right" data-direction="right" aria-label="向右">→</button>
+          </div>
+        </section>
+
+        <aside class="side-rail" aria-label="赛场信息与设置">
+          <section class="rail-section ranking-section">
+            <div class="section-heading"><h2>实时排名</h2><span class="live-tag"><i></i> LIVE</span></div>
+            <ol class="ranking-list" id="rankingList"></ol>
+          </section>
+
+          <section class="rail-section settings-section">
+            <div class="section-heading"><h2>赛场设置</h2><span class="section-index">02</span></div>
+            <label class="setting-row" for="difficultySelect">
+              <span><strong>起始节奏</strong><small>可在下一局生效</small></span>
+              <select id="difficultySelect" aria-label="起始难度">
+                <option value="8">简单 · 8</option>
+                <option value="10" selected>普通 · 10</option>
+                <option value="14">困难 · 14</option>
+              </select>
+            </label>
+            <button class="setting-toggle" id="gridToggle" type="button" aria-pressed="true">
+              <span>网格线</span><strong>开启</strong>
+            </button>
+            <button class="setting-toggle" id="soundToggle" type="button" aria-pressed="true">
+              <span>音效</span><strong>开启</strong>
+            </button>
+          </section>
+
+          <section class="rail-section field-notes">
+            <div class="section-heading"><h2>场内信号</h2><span class="section-index">03</span></div>
+            <div class="fruit-legend">
+              <span class="legend-fruit fruit-red"></span>
+              <span class="legend-fruit fruit-blue"></span>
+              <span class="legend-fruit fruit-yellow"></span>
+              <span>果实 +10</span>
+            </div>
+            <p>每 5 颗果实升一级。蛇速逐级增加，最高 20 FPS。</p>
+            <p>对手较慢，会追逐果实；重生时远离你并免碰撞 2 秒。</p>
+          </section>
+
+          <div class="rail-footer"><span>LOCAL PLAY</span><span>无需账号</span></div>
+        </aside>
+      </main>
+    </div>
+  </body>
+</html>
